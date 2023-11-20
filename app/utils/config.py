@@ -31,6 +31,7 @@ class ConfigManager:
         self.cookiecloud_host = self.config['CookieCloud']['COOKIECLOUD_HOST']
         self.cookiecloud_uuid = self.config['CookieCloud']['COOKIECLOUD_UUID']
         self.cookiecloud_password = self.config['CookieCloud']['COOKIECLOUD_PASSWORD']
+        self.cookiecloud_interval = self.config['CookieCloud']['COOKIECLOUD_INTERVAL']
         
         # 获取站点相关设置
         self.auto_signin_interval = self.config['Schedule']['AUTO_SIGININ_TIME']

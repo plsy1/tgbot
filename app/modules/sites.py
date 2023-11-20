@@ -4,6 +4,7 @@ from PyCookieCloud import PyCookieCloud
 from app.utils.config import conf
 from app.utils.sign_in_utils import make_request
 from app.utils.sign_in_utils import is_sign_in_ok
+from app.utils.logs import log_background_info
 
 class Sites:
     def __init__(self, host, uuid, password):
@@ -30,8 +31,10 @@ class Sites:
                 cookie_string = ";".join([f"{cookie['name']}={cookie['value']}" for cookie in cookies])
                 sign_in_url = self.get_sign_in_url(site)
                 self.SITECOOKIES[site] = {'cookies': cookie_string, 'sign_in_url': sign_in_url}
+                
+            log_background_info("Cookies updated. ")
 
-            self.cookies_updated = True
+            ## self.cookies_updated = True
 
     def get_cookie(self):
         self.update_cookies()
