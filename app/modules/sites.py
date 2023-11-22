@@ -2,9 +2,9 @@ import fnmatch
 import re
 from PyCookieCloud import PyCookieCloud
 from app.utils.config import conf
-from app.utils.sign_in_utils import make_request
-from app.utils.sign_in_utils import is_sign_in_ok
+from app.utils.sign_in_utils import is_sign_in_ok,get_default_headers, make_request
 from app.utils.logs import log_background_info
+
 
 class Sites:
     def __init__(self, host, uuid, password):
@@ -49,7 +49,7 @@ class Sites:
         patterns = {
             "*.m-team.io": "https://{}/index.php",
             "pt.btschool.club": "https://{}/index.php?action=addbonus",
-            "www.haidan.video": "https://www.haidannn.video/signin.php",
+            "www.haidan.video": "https://www.haidan.video/signin.php",
             "totheglory.im": "https://{}/signed.php",
             "monikadesign.uk": "https://{}/",
             "jptv.club": "https://{}/",
@@ -80,10 +80,13 @@ class Sites:
                 res += is_sign_in_ok(host,response)
                 
             elif host == "u2.dmhy.org":
-                response = make_request(host, cookies, 'https://u2.dmhy.org/showup.php', headers=None, data=None, method='GET')
+                response = make_request(host, cookies, 'https://u2.dmhy.org/showup.php', headers=get_default_headers(host, cookies), data=None, method='GET')
                 match = re.search(r'<input type="hidden" name="req" value="([^"]+)" />\s*<input type="hidden" name="hash" value="([^"]+)" />\s*<input type="hidden" name="form" value="([^"]+)" />', response.text)
                 if match:
                     req_value, hash_value, form_value = match.groups()
+                else:
+                    res += is_sign_in_ok(host,None)
+                    continue;
                 matches = re.findall(r'<input type="submit" name="([^"]+)" value="([^"]+)"', response.text)
                 submit_values = [{"name": match[0], "value": match[1]} for match in matches]
                 data = {
@@ -95,7 +98,6 @@ class Sites:
                 }
                 response = make_request(host, cookies, sign_in_url, headers=None, data=data, method='POST')
                 res += is_sign_in_ok(host,response)
-            
             else:
                 response = make_request(host, cookies, sign_in_url, headers=None, data=None, method='GET')
                 res += is_sign_in_ok(host,response)

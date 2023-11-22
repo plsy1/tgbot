@@ -24,13 +24,15 @@ def make_request(host, cookies, url, headers=None, data=None, method='GET'):
         return None
 def is_sign_in_ok(host,resnpose):
     if resnpose == None:
-        return f"*{host}* 签到失败\n"
+        return f"*{host}* 签到失败！！！\n"
     if resnpose.status_code == 200:
         return f"*{host}* 签到成功\n"
     else:
         return f"*{host}* 签到失败\n"
 
-def get_default_headers(host, cookies):
+def get_default_headers(host, cookies, referer=None, type='default'):
+    
+    
     default_headers =  {
         "Host": host,
         "Cookie": cookies,
@@ -48,7 +50,11 @@ def get_default_headers(host, cookies):
         "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
         "sec-gpc": "1",
     }
-    if host == 'u2.dmhy.org':
+    
+    if referer:
+        default_headers["referer"] = referer
+         
+    if type == 'u2':
         # 根据 type 为 'custom' 提供的额外 headers
         custom_headers = {
                 "Host": host,

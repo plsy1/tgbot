@@ -51,6 +51,7 @@ def check_chat_id(func):
 @bot.message_handler(commands=['signin'])
 @check_chat_id
 async def signin(message):
+    await asyncio.get_event_loop().run_in_executor(None, sites.update_cookies)
     await bot_callback(bot, message,sites.sigin_in,handle_result)
     
 @bot.message_handler(commands=['autosign'])
