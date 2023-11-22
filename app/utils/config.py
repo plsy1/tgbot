@@ -1,13 +1,18 @@
 import configparser
-import os
+import os,sys
 
 class ConfigManager:
     def __init__(self, config_file_path=None):
         if config_file_path is None:
-            # 获取 main.py 所在的目录
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            config_file_path = os.path.join(current_dir, '../../conf/config.ini')
             
+            if config_file_path is None:
+                if getattr(sys, 'frozen', False):  # 检查是否是打包后的运行环境
+                    binary_dir = os.path.dirname(sys.argv[0])
+                    config_file_path = os.path.join(binary_dir, 'config.ini')
+                else:
+                    current_dir = os.path.dirname(os.path.abspath(__file__))
+                    config_file_path = os.path.join(current_dir, '../../conf/config.ini')
+
         self.config = configparser.ConfigParser()
         self.config.read(config_file_path)
 

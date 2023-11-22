@@ -1,14 +1,18 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import datetime
-import os
+import os, sys
 
 log_dir = 'logs'
 
-# 获取当前项目根目录的绝对路径
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if getattr(sys, 'frozen', False):  # 检查是否是打包后的运行环境
+    
+    project_root = os.path.dirname(sys.argv[0])
+    print(f"Running in frozen environment. Config file path: {project_root}")
 
-# 构建日志目录的绝对路径
+else:
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+    
 log_dir_path = os.path.join(project_root, log_dir)
 
 if not os.path.exists(log_dir_path):
@@ -17,12 +21,16 @@ if not os.path.exists(log_dir_path):
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
 # 主日志文件
-log_file = f'logs/{datetime.datetime.now().strftime("%Y-%m-%d")}.log'
+# log_file = f'logs/{datetime.datetime.now().strftime("%Y-%m-%d")}.log'
+log_file = os.path.join(log_dir_path, f'{datetime.datetime.now().strftime("%Y-%m-%d")}.log')
+
 file_handler = TimedRotatingFileHandler(log_file, when="midnight", interval=1, backupCount=7, encoding='utf-8')
 file_handler.setFormatter(log_formatter)
 
 # 错误日志文件
-error_log_file = f'logs/error_{datetime.datetime.now().strftime("%Y-%m-%d")}.log'
+# error_log_file = f'logs/error_{datetime.datetime.now().strftime("%Y-%m-%d")}.log'
+error_log_file = os.path.join(log_dir_path, f'error_{datetime.datetime.now().strftime("%Y-%m-%d")}.log')
+
 error_file_handler = TimedRotatingFileHandler(error_log_file, when="midnight", interval=1, backupCount=7, encoding='utf-8')
 error_file_handler.setLevel(logging.ERROR)
 error_file_handler.setFormatter(log_formatter)
