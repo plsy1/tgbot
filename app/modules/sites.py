@@ -11,6 +11,7 @@ class Sites:
         self.cookie_cloud = PyCookieCloud(host, uuid, password)
         self.SITECOOKIES = {}
         self.cookies_updated = False
+        self.auto_sign_is_open = False
 
     def update_cookies(self):
         if not self.cookies_updated:

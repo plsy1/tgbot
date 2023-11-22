@@ -57,8 +57,12 @@ async def signin(message):
 @bot.message_handler(commands=['autosign'])
 @check_chat_id
 async def autosign(message):
-    asyncio.create_task(site_auto_sign(bot))
-    await safe_reply(bot, message, "自动签到开启成功", parse_mode='Markdown')
+    if(sites.auto_sign_is_open == True):
+        await safe_reply(bot, message, "自动签到已经打开咧，你还想开第二次？", parse_mode='Markdown')
+    else:
+        asyncio.create_task(site_auto_sign(bot))
+        await safe_reply(bot, message, "自动签到开启成功，开了就关不掉了嗷！", parse_mode='Markdown')
+        sites.auto_sign_is_open = True
     
 @bot.message_handler(commands=['speed'])
 @check_chat_id

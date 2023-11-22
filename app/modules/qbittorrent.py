@@ -29,7 +29,7 @@ class QBittorrentManager:
             total_upload_speed = self.format_speed(transfer_info['up_info_speed'])
             total_download_speed = self.format_speed(transfer_info['dl_info_speed'])
 
-            result = f"\nTotal Upload Speed: {total_upload_speed}\nTotal Download Speed: {total_download_speed}"
+            result = f"\n上传速度: {total_upload_speed}\nTotal 下载速度: {total_download_speed}"
             return result
         except Exception as e:
             self._handle_api_errors(e)
@@ -40,7 +40,7 @@ class QBittorrentManager:
         try:
             self._authenticate()
             self.qb.torrents_pause("all")
-            return "qBittorrent tasks paused successfully"
+            return "qBittorrent 任务暂停完成"
         except Exception as e:
             self._handle_api_errors(e)
         finally:
@@ -50,7 +50,7 @@ class QBittorrentManager:
         try:
             self._authenticate()
             self.qb.torrents_resume("all")
-            return "qBittorrent tasks resumed successfully"
+            return "qBittorrent 任务恢复完成"
         except Exception as e:
             self._handle_api_errors(e)
         finally:

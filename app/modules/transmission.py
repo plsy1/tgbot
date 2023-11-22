@@ -16,7 +16,7 @@ class TransmissionManager:
             total_upload_speed = self.format_speed(session_stats.upload_speed)
             total_download_speed = self.format_speed(session_stats.download_speed)
 
-            result = f"\nTotal Upload Speed: {total_upload_speed}\nTotal Download Speed: {total_download_speed}"
+            result = f"\nTotal 上传速度: {total_upload_speed}\nTotal 下载速度: {total_download_speed}"
             return result
         except Exception as e:
             self._handle_connection_error(e)
@@ -26,14 +26,14 @@ class TransmissionManager:
             torrents = self.tr.get_torrents()
             torrent_ids = [torrent.id for torrent in torrents]
             self.tr.stop_torrent(torrent_ids)
-            return "Transmission tasks paused successfully"
+            return "Transmission 任务暂停完成"
         except Exception as e:
             self._handle_connection_error(e)
 
     def resume_all_tr(self):
         try:
             self.tr.start_all()
-            return "Transmission tasks resumed successfully"
+            return "Transmission 任务恢复完成"
         except Exception as e:
             self._handle_connection_error(e)
 
