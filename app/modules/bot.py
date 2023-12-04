@@ -9,7 +9,7 @@ from app.modules.transmission import tr
 from app.utils.logs import log_bot_received_message
 from app.utils.logs import log_bot_sent_message
 from app.utils.logs import log_error_info
-
+from app.utils.sign_in_utils import clear_sign_status
 
 bot = AsyncTeleBot(conf.telegram_token)
 
@@ -27,7 +27,7 @@ async def commands(bot):
         await bot.delete_my_commands()
         await bot.set_my_commands([
             telebot.types.BotCommand("/speed", "查看下载器速度"),
-            telebot.types.BotCommand("/signin", "手动签到"),
+            telebot.types.BotCommand("/signin", "强制重新签到"),
             telebot.types.BotCommand("/autosign", "开启自动签到"),
             telebot.types.BotCommand("/pauseall","暂停下载器任务"),
             telebot.types.BotCommand("/resumeall","恢复下载器任务")                        
@@ -51,8 +51,8 @@ def check_chat_id(func):
 @bot.message_handler(commands=['signin'])
 @check_chat_id
 async def signin(message):
-    await asyncio.get_event_loop().run_in_executor(None, sites.update_cookies)
-    await bot_callback(bot, message,sites.sigin_in,handle_result)
+    await asyncio.get_event_loop().run_in_executor(None, clear_sign_status)
+    await bot_callback(bot, message,sites.sign_in,handle_result)
     
 @bot.message_handler(commands=['autosign'])
 @check_chat_id

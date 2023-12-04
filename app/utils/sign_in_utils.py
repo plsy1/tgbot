@@ -1,6 +1,7 @@
-import requests
+import requests, sqlite3
 from requests.exceptions import Timeout
-from app.utils.logs import log_error_info
+from app.utils.logs import log_error_info, log_background_info
+
 
 def make_request(host, cookies, url, headers=None, data=None, method='GET'):
     # 检查是否提供了自定义headers，如果没有，则使用默认headers
@@ -81,3 +82,55 @@ def get_default_headers(host, cookies, referer=None, type='default'):
         
     else:
         return default_headers
+    
+    
+def set_sign_in_status(host, status):
+        try:
+            conn = sqlite3.connect('bot.db')
+            cursor = conn.cursor()
+
+            try:
+                cursor.execute('''
+                    UPDATE Sites
+                    SET sign_in_status = ?
+                    WHERE host = ?
+                ''', (int(status), host)) 
+
+                conn.commit()
+                log_background_info(f"Sign-in status set to {status} for site: {host}")
+
+            except Exception as e:
+
+                conn.rollback()
+                print(f"Error during set_sign_in_status: {str(e)}")
+
+            finally:
+                conn.close()
+
+        except Exception as e:
+            print(f"Error during set_sign_in_status: {str(e)}")
+
+def clear_sign_status():
+    try:
+        conn = sqlite3.connect('bot.db')
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('''
+                UPDATE Sites
+                SET sign_in_status = 0
+            ''') 
+
+            conn.commit()
+            log_background_info("Sign-in status set to False for all sites")
+
+        except Exception as e:
+
+            conn.rollback()
+            print(f"Error during clear_sign_in_status: {str(e)}")
+
+        finally:
+            conn.close()
+
+    except Exception as e:
+        print(f"Error during clear_sign_in_status: {str(e)}")

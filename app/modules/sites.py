@@ -1,51 +1,106 @@
 import fnmatch
 import re
+import sqlite3
+import random
 from PyCookieCloud import PyCookieCloud
 from app.utils.config import conf
-from app.utils.sign_in_utils import is_sign_in_ok,get_default_headers, make_request
-from app.utils.logs import log_background_info
+from app.utils.sign_in_utils import is_sign_in_ok,get_default_headers, make_request, set_sign_in_status
+from app.utils.logs import log_background_info, log_error_info
 
 
 class Sites:
     def __init__(self, host, uuid, password):
-        self.cookie_cloud = PyCookieCloud(host, uuid, password)
-        self.SITECOOKIES = {}
-        self.cookies_updated = False
         self.auto_sign_is_open = False
-
-    def update_cookies(self):
-        if not self.cookies_updated:
-            the_key = self.cookie_cloud.get_the_key()
-            if not the_key:
-                print('Failed to get the key')
-                return
-            encrypted_data = self.cookie_cloud.get_encrypted_data()
-            if not encrypted_data:
-                print('Failed to get encrypted data')
-                return
+        self.cookie_cloud = PyCookieCloud(host, uuid, password)
+       
+    def init_cookies(self):
+        try:
             decrypted_data = self.cookie_cloud.get_decrypted_data()
-            if not decrypted_data:
-                print('Failed to get decrypted data')
-                return
+        except Exception as e:
+                log_error_info("Error during get cookies from CookieCloud",e)
+                
+        conn = sqlite3.connect('bot.db')
+        cursor = conn.cursor()
+        
+        try:
+
+            #cursor.execute('DELETE FROM Sites')
 
             for site, cookies in decrypted_data.items():
                 cookie_string = ";".join([f"{cookie['name']}={cookie['value']}" for cookie in cookies])
                 sign_in_url = self.get_sign_in_url(site)
-                self.SITECOOKIES[site] = {'cookies': cookie_string, 'sign_in_url': sign_in_url}
-                
-            log_background_info("Cookies updated. ")
+                site_alias = self.get_site_alias(site)
+                          
+                cursor.execute('''
+                    INSERT INTO Sites (host, name, cookies, sign_in_url)
+                    SELECT ?, ?, ?, ?
+                    WHERE NOT EXISTS (SELECT 1 FROM Sites WHERE host = ?)
+                ''', (site, site_alias, cookie_string, sign_in_url, site))
 
-            ## self.cookies_updated = True
+            conn.commit()
+            log_background_info("Cookies initialized. ")
+            
+        except Exception as e:
+            conn.rollback()
+            log_error_info("Error during sites cookies initialization",e)
+            
+        finally:
+            conn.close()
+    
+    def update_cookies(self):
+        decrypted_data = self.cookie_cloud.get_decrypted_data()
+        if not decrypted_data:
+            print('Failed to get decrypted data')
+            return
+        conn = sqlite3.connect('bot.db')
+        cursor = conn.cursor()
+        
+        try:
+            for site, cookies in decrypted_data.items():
+                    cookie_string = ";".join([f"{cookie['name']}={cookie['value']}" for cookie in cookies])
+                    cursor.execute('''
+                        UPDATE Sites
+                        SET cookies = ?
+                        WHERE host = ?
+                    ''', (cookie_string, site))
+        except Exception as e:
+            conn.rollback()
+            log_error_info("Error during sites cookies update",e)   
+        finally:
+            conn.close()
+            log_background_info("Cookies自动更新：成功")
+    
+    def get_site_alias(self, site):
+        patterns = {
+            "*.m-team.io": "M-Team",
+            "pt.btschool.club": "BTSCHOOL",
+            "www.haidan.video": "海胆之家",
+            "totheglory.im": "ToTheGlory",
+            "monikadesign.uk": "MonikaDesign",
+            "jptv.club": "JPTV",
+            "www.torrentleech.org": "TorrentLeech",
+            "u2.dmhy.org": "U2",
+            "www.hddolby.com": "HD Dolby",
+            "www.srvfi.top": "SRVFI",
+            "hdfans.org": "HDFans",
+            "pt.soulvoice.club": "聆音Club",
+            "ubits.club": "UBits",
+            "hdvideo.one": "HDVideo",
+            "oldtoons.world": "Old Toons World",
+            "rousi.zip": "Rousi",
+            "zmpt.cc": "织梦",
+            "ptchina.org": "铂金学院",
+            "www.hdkyl.in": "HDKylin",
+            "kamept.com": "KamePT",
+            "hdhome.org": "HDHome",
+        }
 
-    def get_cookie(self):
-        self.update_cookies()
+        for pattern, alias in patterns.items():
+            if fnmatch.fnmatch(site, pattern):
+                return alias
 
-        for site, data in self.SITECOOKIES.items():
-            print(f"Site: {site}")
-            print(f"    Cookies: {data['cookies']}")
-            print(f"    Sign In URL: {data['sign_in_url']}")
-            print("-" * 20)
-
+        return site
+        
     def get_sign_in_url(self, site):
         patterns = {
             "*.m-team.io": "https://{}/index.php",
@@ -64,11 +119,25 @@ class Sites:
 
         return f'https://{site}/attendance.php'
     
-    def sigin_in(self):
+    def sign_in(self):
         res = '*【签到通知】*\n'
-        for host, data in self.SITECOOKIES.items():
-            cookies = data['cookies']
-            sign_in_url = data['sign_in_url']
+
+        conn = sqlite3.connect('bot.db')
+        
+        
+        cursor = conn.cursor()
+        cursor.execute('SELECT host, name, cookies, sign_in_url, sign_in_status FROM Sites')
+        sites = cursor.fetchall()
+        conn.close()
+
+        for site_info in sites:
+            host, site_alias, cookies, sign_in_url, sign_in_status = site_info
+            if(sign_in_status == True):
+                log_background_info(f"{site_alias} 今日已签到")
+                res += f"*{site_alias}* 今日已签到\n"
+                continue
+                
+            print('开始进行签到' + sign_in_url)
             
             if host == "totheglory.im":
                 response = make_request(host, cookies, 'https://totheglory.im/index.php', headers=None, data=None, method='GET')
@@ -76,35 +145,38 @@ class Sites:
                 match = re.search(pattern, response.text)
                 if match:
                     timestamp, token = match.groups()
-                    data = {"signed_timestamp": timestamp,"signed_token": token,}
+                    data = {"signed_timestamp": timestamp, "signed_token": token}
                 response = make_request(host, cookies, sign_in_url, headers=None, data=data, method='POST')
-                res += is_sign_in_ok(host,response)
-                
+                res += is_sign_in_ok(site_alias, response)
+
             elif host == "u2.dmhy.org":
                 response = make_request(host, cookies, 'https://u2.dmhy.org/showup.php', headers=get_default_headers(host, cookies), data=None, method='GET')
                 match = re.search(r'<input type="hidden" name="req" value="([^"]+)" />\s*<input type="hidden" name="hash" value="([^"]+)" />\s*<input type="hidden" name="form" value="([^"]+)" />', response.text)
                 if match:
                     req_value, hash_value, form_value = match.groups()
                 else:
-                    res += is_sign_in_ok(host,None)
-                    continue;
+                    res += is_sign_in_ok(site_alias, None)
+                    continue
                 matches = re.findall(r'<input type="submit" name="([^"]+)" value="([^"]+)"', response.text)
                 submit_values = [{"name": match[0], "value": match[1]} for match in matches]
+                random_submit_value = random.choice(submit_values)
                 data = {
-                    "message": "签到咧签到咧", 
+                    "message": "签到咧签到咧签到咧签到咧签到咧签到咧签到咧签到咧签到咧签到咧", 
                     "req": req_value,
                     "hash": hash_value,
                     "form": form_value,
-                    submit_values[0]['name']: submit_values[0]['value']
+                    random_submit_value['name']: random_submit_value['value']
                 }
                 response = make_request(host, cookies, sign_in_url, headers=None, data=data, method='POST')
-                res += is_sign_in_ok(host,response)
+                res += is_sign_in_ok(site_alias, response)
             else:
                 response = make_request(host, cookies, sign_in_url, headers=None, data=None, method='GET')
-                res += is_sign_in_ok(host,response)
-        return res
-                
+                res += is_sign_in_ok(site_alias, response)
+                if(response.status_code == 200):
+                    set_sign_in_status(host, True)
 
-    
+        return res
+
+        
 sites = Sites(conf.cookiecloud_host, conf.cookiecloud_uuid, conf.cookiecloud_password)
-sites.get_cookie()
+sites.init_cookies()

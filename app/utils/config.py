@@ -4,14 +4,12 @@ import os,sys
 class ConfigManager:
     def __init__(self, config_file_path=None):
         if config_file_path is None:
-            
-            if config_file_path is None:
-                if getattr(sys, 'frozen', False):  # 检查是否是打包后的运行环境
-                    binary_dir = os.path.dirname(sys.argv[0])
-                    config_file_path = os.path.join(binary_dir, 'config.ini')
-                else:
-                    current_dir = os.path.dirname(os.path.abspath(__file__))
-                    config_file_path = os.path.join(current_dir, '../../conf/config.ini')
+            if getattr(sys, 'frozen', False):  # 检查是否是打包后的运行环境
+                binary_dir = os.path.dirname(sys.argv[0])
+                config_file_path = os.path.join(binary_dir, 'config.ini')
+            else:
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                config_file_path = os.path.join(current_dir, '../../conf/config.ini')
 
         self.config = configparser.ConfigParser()
         self.config.read(config_file_path)
@@ -38,8 +36,8 @@ class ConfigManager:
         self.cookiecloud_password = self.config['CookieCloud']['COOKIECLOUD_PASSWORD']
         self.cookiecloud_interval = self.config['CookieCloud']['COOKIECLOUD_INTERVAL']
         
-        # 获取站点相关设置
-        self.auto_signin_interval = self.config['Schedule']['AUTO_SIGININ_TIME']
+        # 获取定时任务部分的配置
+        self.auto_clear_sign_status_time = self.config['Schedule']['AUTO_CLEAR_SIGNIN_STATUS_TIME']
 
 
 conf = ConfigManager()
