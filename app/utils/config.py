@@ -37,6 +37,7 @@ class ConfigManager:
         self.cookiecloud_interval = self.config['CookieCloud']['COOKIECLOUD_INTERVAL']
         
         # 获取定时任务部分的配置
+        self.auto_signin_interval = self.config['Schedule']['AUTO_SIGININ_TIME']
         self.auto_clear_sign_status_time = self.config['Schedule']['AUTO_CLEAR_SIGNIN_STATUS_TIME']
 
 

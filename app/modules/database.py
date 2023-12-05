@@ -12,10 +12,30 @@ def initialize_database():
             name TEXT NOT NULL,
             cookies TEXT NOT NULL,
             sign_in_url TEXT NOT NULL,
-            sign_in_status BOOLEAN NOT NULL DEFAULT 0
+            sign_in_status BOOLEAN NOT NULL DEFAULT 0,
+            UNIQUE(host)
         )
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS SiteStats (
+            id INTEGER PRIMARY KEY,
+            host TEXT NOT NULL,
+            username TEXT,
+            user_level TEXT,
+            user_id TEXT,
+            upload_amount TEXT,
+            download_amount TEXT,
+            share_ratio TEXT,
+            magic_value TEXT,
+            seeding_count TEXT,
+            seeding_volume TEXT,
+            FOREIGN KEY (host) REFERENCES Sites(host) ON DELETE CASCADE
+        )
+        ''')
+    
+    
+    
     conn.commit()
     conn.close()
 

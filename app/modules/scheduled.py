@@ -56,7 +56,7 @@ async def site_auto_sign(bot):
             job_one = schedule.every().day.at(random_time_one).do(lambda: asyncio.create_task(run_auto_sign_task()))
             job_two = schedule.every().day.at(random_time_two).do(lambda: asyncio.create_task(run_auto_sign_task()))
             
-            last_update_date = datetime.now()
+            last_update_date = datetime.now().date()
             log_background_info(f'自动签到执行时间更新于: {last_update_date}')   
             
         schedule.run_pending()
