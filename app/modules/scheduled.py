@@ -92,3 +92,18 @@ async def auto_clear_sign_status():
     while True:
         schedule.run_pending()
         await asyncio.sleep(1)
+        
+async def auto_update_site_info():
+    log_background_info('设置定时任务：每日更新站点统计数据')
+    
+    async def run_update_site_info():
+        await asyncio.get_event_loop().run_in_executor(None, log_background_info, '开始执行：每日更新站点统计数据')
+        await asyncio.get_event_loop().run_in_executor(None, sites.update_site_info)
+
+    schedule.every().day.at(conf.auto_clear_sign_status_time).do(
+        lambda: asyncio.create_task(run_update_site_info())
+    )
+
+    while True:
+        schedule.run_pending()
+        await asyncio.sleep(1)

@@ -1,4 +1,11 @@
 from telebot.async_telebot import AsyncTeleBot
+from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import ReplyKeyboardMarkup
+from functools import partial
+
+
+
+
 import telebot, asyncio
 from app.utils.config import conf
 from app.modules.sites import sites
@@ -30,7 +37,9 @@ async def commands(bot):
             telebot.types.BotCommand("/signin", "强制重新签到"),
             telebot.types.BotCommand("/autosign", "开启自动签到"),
             telebot.types.BotCommand("/pauseall","暂停下载器任务"),
-            telebot.types.BotCommand("/resumeall","恢复下载器任务")                        
+            telebot.types.BotCommand("/resumeall","恢复下载器任务"),
+            telebot.types.BotCommand("/statistics","所有站点数据"),      
+            telebot.types.BotCommand("/statistic","单个站点数据")                    
         ])
     except telebot.asyncio_helper.RequestTimeout as e:
         log_error_info("Error deleting commands: ", e)
@@ -48,6 +57,66 @@ def check_chat_id(func):
 
     return wrapper
 
+@bot.message_handler(commands=['statistic'])
+async def start(message: Message):
+    keyboard = InlineKeyboardMarkup()
+    
+    # 添加按钮到键盘
+    button1 = InlineKeyboardButton("杜比", callback_data="www.hddolby.com")
+    button2 = InlineKeyboardButton("家园", callback_data="hdhome.org")
+    button3 = InlineKeyboardButton("红叶", callback_data="leaves.red")
+    
+    button4 = InlineKeyboardButton("学校", callback_data="pt.btschool.club")
+    button5 = InlineKeyboardButton("HDVideo", callback_data="hdvideo.one")
+    button6 = InlineKeyboardButton("聆音", callback_data="pt.soulvoice.club")
+    
+    button7 = InlineKeyboardButton("Ubits", callback_data="ubits.club")
+    button8 = InlineKeyboardButton("红豆饭", callback_data="hdfans.org")
+    button9 = InlineKeyboardButton("海胆", callback_data="www.haidan.video")
+    
+    button10 = InlineKeyboardButton("srvfi", callback_data="www.srvfi.top")
+    button11 = InlineKeyboardButton("馒头", callback_data="xp.m-team.io")
+    button12 = InlineKeyboardButton("织梦", callback_data="zmpt.cc")
+    
+    button13 = InlineKeyboardButton("U2", callback_data="u2.dmhy.org")
+    button14 = InlineKeyboardButton("Kamept", callback_data="kamept.com")
+    button15 = InlineKeyboardButton("麒麟", callback_data="www.hdkyl.in")
+    
+    button16 = InlineKeyboardButton("oldtoons", callback_data="oldtoons.world")
+    button17 = InlineKeyboardButton("rousi", callback_data="rousi.zip")
+    button18 = InlineKeyboardButton("铂金学院", callback_data="ptchina.org")
+    
+    button19 = InlineKeyboardButton("TTG", callback_data="totheglory.im")
+    
+    
+    keyboard.add(button1, button2, button3)
+    keyboard.add(button4, button5, button6)
+    keyboard.add(button7, button8, button9)
+    keyboard.add(button10, button11, button12)
+    keyboard.add(button13, button14, button15)
+    keyboard.add(button16, button17, button18)
+    keyboard.add(button19)
+
+    # 发送包含按钮的键盘给用户
+    await bot.send_message(message.chat.id, "点击按钮查看对应站点数据统计信息嗷", reply_markup=keyboard)
+    
+
+@bot.callback_query_handler(func=lambda call: True)
+async def handle_button_click(call):
+        res = await asyncio.get_event_loop().run_in_executor(None, sites.update_and_show_site_info, call.data)
+        await bot.send_message(call.message.chat.id, res, parse_mode='Markdown')
+
+
+        
+
+
+
+
+@bot.message_handler(commands=['statistics'])
+@check_chat_id
+async def statistics(message):
+    await bot_callback(bot, message,sites.statistics,handle_result)
+    
 @bot.message_handler(commands=['signin'])
 @check_chat_id
 async def signin(message):
