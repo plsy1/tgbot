@@ -264,7 +264,7 @@ class Sites:
         cursor.execute('''
         SELECT SiteStats.id, Sites.name, SiteStats.username, SiteStats.user_level,
                SiteStats.user_id, SiteStats.upload_amount, SiteStats.download_amount,
-               SiteStats.share_ratio, SiteStats.magic_value, SiteStats.seeding_count,
+               SiteStats.share_ratio, SiteStats.magic_value,
                SiteStats.seeding_volume
         FROM SiteStats
         INNER JOIN Sites ON SiteStats.host = Sites.host
@@ -276,7 +276,7 @@ class Sites:
         
         for info in information:
             id, site_name, username, user_level, user_id, upload_amount, download_amount, \
-            share_ratio, magic_value, seeding_count, seeding_volume = info
+            share_ratio, magic_value, seeding_volume = info
             
             res += f"*{site_name}*({user_level})\n"
             res += f"上传量：{upload_amount}\n"
