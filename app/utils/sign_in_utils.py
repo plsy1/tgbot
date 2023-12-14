@@ -2,7 +2,7 @@ import requests, sqlite3
 from requests.exceptions import Timeout
 from app.utils.logs import log_error_info, log_background_info
 from app.utils.user_info_statistics import get_user_level, get_user_name, get_user_id, get_share_ratio, get_upload_amount, get_download_amount, get_magic_value
-from app.utils.user_info_statistics import get_seeding_volume, get_seeding_volume_ttg
+from app.utils.user_info_statistics import get_seeding_volume, get_seeding_volume_ttg, get_passkey
 
 
 
@@ -138,7 +138,7 @@ def clear_sign_status():
     except Exception as e:
         print(f"Error during clear_sign_in_status: {str(e)}")
         
-def update_site_info(host,cookies):
+def get_site_info(host,cookies):
     response = make_request(host, cookies, f'https://{host}/index.php', headers=None, data=None, method='GET')
     if response == None:
         return None
@@ -239,5 +239,11 @@ def update_site_info(host,cookies):
     user_level = get_user_level(host,cookies,user_id,host)
     print(f'用户等级：{user_level}')
     
-    return magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level
+    
+    ## 获取passkey
+    
+    passkey = get_passkey(host,cookies,host)
+    print('Passkey',passkey)
+    
+    return magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level,passkey
 

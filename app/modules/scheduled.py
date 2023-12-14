@@ -6,6 +6,8 @@ from app.modules.sites import sites
 from app.utils.logs import log_background_info
 from app.utils.logs import log_error_info
 from app.utils.sign_in_utils import clear_sign_status
+from app.plugins.audiobooksfeed.rss import gen_new_audio_rss
+
 
 
 async def site_auto_sign(bot):
@@ -102,6 +104,24 @@ async def auto_update_site_info():
 
     schedule.every().day.at(conf.auto_clear_sign_status_time).do(
         lambda: asyncio.create_task(run_update_site_info())
+    )
+
+    while True:
+        schedule.run_pending()
+        await asyncio.sleep(1)
+        
+        
+async def auto_gen_audio_rss(bot):
+    log_background_info('设置定时任务：自动生成新入库有声书RSS地址')
+    
+    async def run_gen_audio_rss():
+        await asyncio.get_event_loop().run_in_executor(None, log_background_info, '开始执行：自动生成新入库有声书RSS地址')
+        rss_message = await asyncio.get_event_loop().run_in_executor(None, gen_new_audio_rss)
+        if rss_message != '未检测到有声书入库。':
+            await bot.send_message(conf.chat_id, rss_message)
+    
+    schedule.every(int(conf.audio_rss_gen_interval)).seconds.do(
+        lambda: asyncio.create_task(run_gen_audio_rss())
     )
 
     while True:

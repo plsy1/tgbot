@@ -29,8 +29,6 @@ def get_user_level(host,cookies,user_id,flag = None):
         
         try:
             response = requests.get(url,headers=headers)
-            with open('output.txt', 'w', encoding='utf-8') as file:
-                file.write(response.text)
             
         except requests.exceptions.RequestException as e:
             log_error_info("请求异常: ", e)
@@ -67,8 +65,7 @@ def get_user_level(host,cookies,user_id,flag = None):
         
         try:
             response = requests.get(url,headers=headers)
-            with open('output.txt', 'w', encoding='utf-8') as file:
-                file.write(response.text)
+            
             
         except requests.exceptions.RequestException as e:
             log_error_info("请求异常: ", e)
@@ -342,3 +339,47 @@ def get_seeding_volume_ttg(host,cookies,user_id):
     return None
     
 
+def get_passkey(host,cookies,flag = None):
+    url = f'https://{host}/usercp.php'
+    
+    if flag == 'totheglory.im':
+        url = f'https://{host}/my.php'
+        
+    headers = {
+        "Host": host,
+        "Cookie": cookies,
+        "sec-ch-ua": "\"Google Chrome\";v=\"119\", \"Chromium\";v=\"119\", \"Not?A_Brand\";v=\"24\"",
+        "dnt": "1",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "accept": "*/*",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-dest": "empty",
+        "referer": f'https://{host}/index.php',
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "sec-gpc": "1",
+    }
+    
+    try:
+        response = requests.get(url,headers=headers)
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        first_td = soup.find('td', text=re.compile(r'密钥|密匙|Passkey'))
+
+        if first_td:
+            passkey = first_td.find_next('td').get_text(strip=True)
+            if flag == 'hdhome.org':
+                pattern = r'PASSKEY(.*?)（妥善保管，请勿泄露）'
+                match = re.search(pattern, passkey)
+                passkey = match.group(1)
+            elif flag == 'u2.dmhy.org':
+                second_td = first_td.find_next('td')
+                passkey = second_td.find('span', class_='hidden-click').get('data-content')
+            return passkey
+        
+    except requests.exceptions.RequestException as e:
+        log_error_info("请求异常: ", e)
+        return

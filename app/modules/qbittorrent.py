@@ -63,5 +63,23 @@ class QBittorrentManager:
         else:
             return f"{speed / 1024:.2f} KB/s"
         
+        
+    def add_torrent(self, download_link, save_path, category=None):
+        try:
+            # 构建添加种子的参数
+            torrent_options = {
+                'urls': download_link,
+                'category': category,
+                'save_path': save_path
+            }
+
+            # 发送添加种子请求
+            self.qb.torrents_add(**torrent_options)
+
+            print('Torrent added successfully!')
+        except Exception as e:
+            print(f'Error adding torrent: {e}')
+
+        
 
 qb = QBittorrentManager()

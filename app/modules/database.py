@@ -28,9 +28,17 @@ def initialize_database():
             download_amount TEXT,
             share_ratio TEXT,
             magic_value TEXT,
-            seeding_count TEXT,
             seeding_volume TEXT,
+            passkey TEXT,
             FOREIGN KEY (host) REFERENCES Sites(host) ON DELETE CASCADE
+        )
+        ''')
+    
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS AudioBooks (
+            folder TEXT NOT NULL,
+            rss_url TEXT
         )
         ''')
     
@@ -40,4 +48,21 @@ def initialize_database():
     conn.close()
 
 
+def get_passkey_and_host():
+    conn = sqlite3.connect('bot.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('SELECT passkey,host FROM SiteStats')
+        res = cursor.fetchall()
+        
+        return res
+        
+    except Exception as e:
+            print(f"Error during get passkey: {str(e)}")
+
+    finally:
+            conn.close()
+
 initialize_database()
+

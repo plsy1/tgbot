@@ -1,5 +1,7 @@
 import configparser
 import os,sys
+from app.plugins.audiobooksfeed.metadata import *
+
 
 class ConfigManager:
     def __init__(self, config_file_path=None):
@@ -39,7 +41,15 @@ class ConfigManager:
         # 获取定时任务部分的配置
         self.auto_signin_interval = self.config['Schedule']['AUTO_SIGININ_TIME']
         self.auto_clear_sign_status_time = self.config['Schedule']['AUTO_CLEAR_SIGNIN_STATUS_TIME']
+        
+        # AudioBooks配置
+        self.server_port = self.config['AudioBookFeed']['PORT']
+        self.root_folder = self.config['AudioBookFeed']['DIRECTORY']
+        self.server_host = get_preferred_ip_address()
+        self.audio_rss_gen_interval = self.config['AudioBookFeed']['RSS_UPDATE_INTERVAL']
+        self.audio_extensions = self.config['AudioBookFeed']['AUDIO_EXTENSIONS'].split(', ')
 
 
 conf = ConfigManager()
+
 

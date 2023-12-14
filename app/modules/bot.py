@@ -2,6 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.types import ReplyKeyboardMarkup
 from functools import partial
+from app.plugins.audiobooksfeed.rss import gen_new_audio_rss
 
 
 
@@ -39,7 +40,8 @@ async def commands(bot):
             telebot.types.BotCommand("/pauseall","暂停下载器任务"),
             telebot.types.BotCommand("/resumeall","恢复下载器任务"),
             telebot.types.BotCommand("/statistics","所有站点数据"),      
-            telebot.types.BotCommand("/statistic","单个站点数据")                    
+            telebot.types.BotCommand("/statistic","单个站点数据"),
+            telebot.types.BotCommand("/new_audiobooks","生成新的本地有声书RSS地址")                     
         ])
     except telebot.asyncio_helper.RequestTimeout as e:
         log_error_info("Error deleting commands: ", e)
@@ -109,7 +111,10 @@ async def handle_button_click(call):
 
         
 
-
+@bot.message_handler(commands=['new_audiobooks'])
+@check_chat_id
+async def new_audiobooks(message):
+    await bot_callback(bot, message,gen_new_audio_rss,handle_result)
 
 
 @bot.message_handler(commands=['statistics'])
@@ -179,4 +184,6 @@ async def autosign(message):
     
     await safe_reply(bot, message, res, parse_mode='Markdown')
     await asyncio.get_event_loop().run_in_executor(None, log_bot_sent_message,message,res.replace('\n', ''))
+    
+    
     

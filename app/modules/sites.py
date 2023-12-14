@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from PyCookieCloud import PyCookieCloud
 from app.utils.config import conf
-from app.utils.sign_in_utils import is_sign_in_ok,get_default_headers, make_request, set_sign_in_status, update_site_info
+from app.utils.sign_in_utils import is_sign_in_ok,get_default_headers, make_request, set_sign_in_status, get_site_info
 from app.utils.logs import log_background_info, log_error_info
 from app.utils.unittools import convert_large_size, convert_to_gb
 from app.utils.user_info_statistics import get_user_level, get_user_name, get_user_id, get_share_ratio, get_upload_amount, get_download_amount, get_magic_value
@@ -65,19 +65,19 @@ class Sites:
                 if (host,) in sites_stats_data:
                     continue;
                 
-                site_info = update_site_info(host, cookies)
+                site_info = get_site_info(host, cookies)
                 
                 if site_info is not None:
-                    magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level = site_info
+                    magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level, passkey = site_info
                 else:
                     print(f"{host} 更新站点信息失败")
 
                 try:
                     cursor.execute('''
-                        INSERT INTO SiteStats (host, username, user_id, upload_amount, download_amount, share_ratio, magic_value, user_level, seeding_volume)
-                        SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
+                        INSERT INTO SiteStats (host, username, user_id, upload_amount, download_amount, share_ratio, magic_value, user_level, seeding_volume, passkey)
+                        SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                         WHERE NOT EXISTS (SELECT 1 FROM SiteStats WHERE host = ?)
-                    ''', (host, username, user_id, uploaded_amount, downloaded_amount, share_ratio, magic_value, user_level, seeding_volume, host))
+                    ''', (host, username, user_id, uploaded_amount, downloaded_amount, share_ratio, magic_value, user_level, seeding_volume, passkey, host))
             
                     conn.commit()
                     log_background_info("sites statics initialized. ")
@@ -111,10 +111,10 @@ class Sites:
         for tmp in sites_cookies:
             cookies, name  = tmp
             
-            site_info = update_site_info(hostname, cookies)
+            site_info = get_site_info(hostname, cookies)
                 
             if site_info is not None:
-                magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level = site_info
+                magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level,passkey = site_info
                 
                 res += f"*{name}*\n"
                 res += f"账号名：{username}\n"
@@ -129,9 +129,9 @@ class Sites:
                 try:
                     cursor.execute('''
                 UPDATE SiteStats
-                SET username=?, user_id=?, upload_amount=?, download_amount=?, share_ratio=?, magic_value=?, user_level=?, seeding_volume=?
+                SET username=?, user_id=?, upload_amount=?, download_amount=?, share_ratio=?, magic_value=?, user_level=?, seeding_volume=?, passkey=?
                 WHERE host=?
-            ''', (username, user_id, uploaded_amount, downloaded_amount, share_ratio, magic_value, user_level, seeding_volume, hostname))
+            ''', (username, user_id, uploaded_amount, downloaded_amount, share_ratio, magic_value, user_level, seeding_volume, passkey, hostname))
             
                     conn.commit()
                     log_background_info(f"{name} 站点统计信息更新成功")
@@ -158,7 +158,7 @@ class Sites:
         for tmp in sites_cookies:
             host, cookies, name  = tmp
             
-            site_info = update_site_info(host, cookies)
+            site_info = get_site_info(host, cookies)
                 
             if site_info is not None:
                 magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level = site_info
@@ -351,6 +351,7 @@ class Sites:
         
 sites = Sites(conf.cookiecloud_host, conf.cookiecloud_uuid, conf.cookiecloud_password)
 sites.init_cookies()
+sites.init_statics()
 
 
 
