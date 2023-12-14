@@ -162,5 +162,5 @@ cython_debug/
 
 !app/plugins/audiobooksfeed/
 
-conf/
+conf/config.ini
 bot.db
