@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from app.modules.sites import sites
 from back.api import sitesInfo, rssSearch
 app = FastAPI()
@@ -18,14 +19,16 @@ def send():
     # 在这里调用 pauseqb() 函数，并获取结果
     return sitesInfo()
 
-@app.post("/api/search")
-async def search(request: Request):
-
-    data = await request.json()
-
-    search_query = data.get('search_query', '')
-    print(search_query)
+@app.post("/api/search/{search_query}")
+async def search(request: Request, search_query: str):
     api_results = rssSearch(search_query)
 
-
     return api_results
+
+@app.get("/", status_code=302, tags=["html"])
+def index():
+    return RedirectResponse("/docs")
+
+@app.post("/items/")
+async def create_item(request: Request, item: dict):
+    return {"item": item}

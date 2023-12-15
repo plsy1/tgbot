@@ -91,12 +91,12 @@ def generate_podcast_feed(metadata, reader,desc,episode_list,book_dir,timestamp)
     # 添加 <itunes:image> 元素
     dir = f'{config.root_folder}/{book_dir}'
     cover = get_cover(dir)
-    itunes_image = ET.SubElement(channel, "itunes:image", attrib={"href": metadata.get("cover_image", f'http://{config.server_host}:{config.server_port}/{encoded_book_dir}/{cover[0]}')})
+    itunes_image = ET.SubElement(channel, "itunes:image", attrib={"href": metadata.get("cover_image", f'https://{config.rss_domain}/{encoded_book_dir}/{cover[0]}')})
 
     time_diff_hours = 0
 
     for file_name in episode_list:
-        item = generate_item_element(f'http://{config.server_host}:{config.server_port}',encoded_book_dir,file_name,reader,time_diff_hours)
+        item = generate_item_element(f'https://{config.rss_domain}',encoded_book_dir,file_name,reader,time_diff_hours)
         channel.append(item)
         time_diff_hours += 1
 
@@ -114,7 +114,7 @@ def generate_podcast_feed(metadata, reader,desc,episode_list,book_dir,timestamp)
     #with open(output_path, "a") as output_file:
         
         #output_file.write(f'文件目录名：{book_dir}\n')
-    rss_link = f'http://{config.server_host}:{config.server_port}/xml/{encoded_book_dir}.xml\n\n'
+    rss_link = f'https://{config.rss_domain}/xml/{encoded_book_dir}.xml\n\n'
         #output_file.write('RSS链接： ' + rss_link)
         
     #return f"{book_dir}\n{rss_link}"

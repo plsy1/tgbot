@@ -12,7 +12,6 @@ class FileServer:
         self.app.router.add_get('/favicon.ico', self.ignore_favicon)
 
     async def download_file(self, request):
-        print('fuckyou')
         dirname = request.match_info['dirname']
         filename = request.match_info['filename']
         file_path = os.path.join(self.root_dir, f'{dirname}/{filename}')
@@ -23,7 +22,6 @@ class FileServer:
             return web.Response(status=404)  # File not found
 
     async def display_xml(self, request):
-        print('test')
         filename = request.match_info['filename']
         xml_path = os.path.join(self.root_dir, filename)
 

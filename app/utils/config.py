@@ -48,6 +48,7 @@ class ConfigManager:
         self.server_host = get_preferred_ip_address()
         self.audio_rss_gen_interval = self.config['AudioBookFeed']['RSS_UPDATE_INTERVAL']
         self.audio_extensions = self.config['AudioBookFeed']['AUDIO_EXTENSIONS'].split(', ')
+        self.rss_domain = self.config['AudioBookFeed']['RSS_DOMAIN']
 
 
 conf = ConfigManager()
