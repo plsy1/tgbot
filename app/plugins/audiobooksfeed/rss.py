@@ -4,9 +4,10 @@ from urllib.parse import quote
 import os, time
 from app.plugins.audiobooksfeed.metadata import *
 import sqlite3
+from email.utils import formatdate
 
 
-def generate_item_element(host,bookdir, file_name,reader):
+def generate_item_element(host,bookdir, file_name,reader,time_diff_hours):
     
     
     encoded_file_name = quote(file_name, safe="")
@@ -19,6 +20,15 @@ def generate_item_element(host,bookdir, file_name,reader):
     # 添加 <title> 元素到订阅项，使用文件名
     item_title = ET.SubElement(item, "title")
     item_title.text = base_name
+    
+    # 计算时间差
+    current_time = time.time()
+    pub_date_time = current_time + (time_diff_hours * 3600)  # 将小时转换为秒
+
+    # 添加 <pubDate> 元素到订阅项
+    item_pub_date = ET.SubElement(item, "pubDate")
+    item_pub_date.text = formatdate(timeval=pub_date_time, localtime=True)
+    
     
     item_author = ET.SubElement(item, "itunes:author")
     item_author.text = reader if reader else "Default Author Name"
@@ -83,11 +93,12 @@ def generate_podcast_feed(metadata, reader,desc,episode_list,book_dir,timestamp)
     cover = get_cover(dir)
     itunes_image = ET.SubElement(channel, "itunes:image", attrib={"href": metadata.get("cover_image", f'http://{config.server_host}:{config.server_port}/{encoded_book_dir}/{cover[0]}')})
 
-    
+    time_diff_hours = 0
 
     for file_name in episode_list:
-        item = generate_item_element(f'http://{config.server_host}:{config.server_port}',encoded_book_dir,file_name,reader)
+        item = generate_item_element(f'http://{config.server_host}:{config.server_port}',encoded_book_dir,file_name,reader,time_diff_hours)
         channel.append(item)
+        time_diff_hours += 1
 
 
     # 将 XML 树转换为字符串

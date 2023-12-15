@@ -6,11 +6,11 @@ import requests
 from bs4 import BeautifulSoup
 from PyCookieCloud import PyCookieCloud
 from app.utils.config import conf
-from app.utils.sign_in_utils import is_sign_in_ok,get_default_headers, make_request, set_sign_in_status, get_site_info
+from app.utils.sign_in_utils import is_sign_in_ok,get_default_headers, make_request, get_site_info
 from app.utils.logs import log_background_info, log_error_info
-from app.utils.unittools import convert_large_size, convert_to_gb
-from app.utils.user_info_statistics import get_user_level, get_user_name, get_user_id, get_share_ratio, get_upload_amount, get_download_amount, get_magic_value
-from app.utils.user_info_statistics import get_seeding_volume
+from app.modules.database import set_sign_in_status
+import io
+
 
 class Sites:
     def __init__(self, host, uuid, password):
@@ -161,14 +161,14 @@ class Sites:
             site_info = get_site_info(host, cookies)
                 
             if site_info is not None:
-                magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level = site_info
+                magic_value, share_ratio, uploaded_amount, downloaded_amount, username, user_id, seeding_volume, user_level, passkey = site_info
                 
                 try:
                     cursor.execute('''
                 UPDATE SiteStats
-                SET username=?, user_id=?, upload_amount=?, download_amount=?, share_ratio=?, magic_value=?, user_level=?, seeding_volume=?
+                SET username=?, user_id=?, upload_amount=?, download_amount=?, share_ratio=?, magic_value=?, user_level=?, seeding_volume=?, passkey=?
                 WHERE host=?
-            ''', (username, user_id, uploaded_amount, downloaded_amount, share_ratio, magic_value, user_level, seeding_volume, host))
+            ''', (username, user_id, uploaded_amount, downloaded_amount, share_ratio, magic_value, user_level, seeding_volume, passkey,host))
             
                     conn.commit()
                     log_background_info(f"{name} 站点统计信息自动更新成功")
@@ -287,17 +287,13 @@ class Sites:
         return res
         
         
-    def sign_in(self):
+    def sign_in(self,sites):
         res = '*【签到通知】*\n'
-
-        conn = sqlite3.connect('bot.db')
         
+        if sites == None:
+            res += '数据库读取签到所需数据失败。'
+            return res
         
-        cursor = conn.cursor()
-        cursor.execute('SELECT host, name, cookies, sign_in_url, sign_in_status FROM Sites')
-        sites = cursor.fetchall()
-        conn.close()
-
         for site_info in sites:
             host, site_alias, cookies, sign_in_url, sign_in_status = site_info
             if host == 'leaves.red':
@@ -307,7 +303,7 @@ class Sites:
                 res += f"*{site_alias}* 今日已签到\n"
                 continue
                 
-            print('开始进行签到' + sign_in_url)
+            log_background_info('开始进行签到' + sign_in_url)
             
             if host == "totheglory.im":
                 response = make_request(host, cookies, 'https://totheglory.im/index.php', headers=None, data=None, method='GET')
@@ -341,6 +337,12 @@ class Sites:
                 res += is_sign_in_ok(site_alias, response)
             else:
                 response = make_request(host, cookies, sign_in_url, headers=None, data=None, method='GET')
+                if response.status_code == 200:
+                    with io.open('response_content.html', 'w', encoding='utf-8') as file:
+                        file.write(response.text)
+                else:
+                    print(f"Request failed with status code {response.status_code}")
+
                 res += is_sign_in_ok(site_alias, response)
                 
             if response and response.status_code == 200: 

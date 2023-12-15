@@ -5,8 +5,9 @@ from app.utils.config import conf
 from app.modules.sites import sites
 from app.utils.logs import log_background_info
 from app.utils.logs import log_error_info
-from app.utils.sign_in_utils import clear_sign_status
+from app.modules.database import clear_sign_status
 from app.plugins.audiobooksfeed.rss import gen_new_audio_rss
+from app.modules.database import get_sites
 
 
 
@@ -16,7 +17,7 @@ async def site_auto_sign(bot):
 
     async def run_auto_sign():
         await asyncio.get_event_loop().run_in_executor(None, log_background_info, '开始执行自动签到')
-        future = asyncio.get_event_loop().run_in_executor(None, sites.sign_in)
+        future = asyncio.get_event_loop().run_in_executor(None, sites.sign_in,get_sites)
         res = await future
         try:
             await bot.send_message(conf.chat_id, res, parse_mode='Markdown')

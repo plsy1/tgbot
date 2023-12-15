@@ -3,7 +3,7 @@ from requests.exceptions import Timeout
 from app.utils.logs import log_error_info, log_background_info
 from app.utils.user_info_statistics import get_user_level, get_user_name, get_user_id, get_share_ratio, get_upload_amount, get_download_amount, get_magic_value
 from app.utils.user_info_statistics import get_seeding_volume, get_seeding_volume_ttg, get_passkey
-
+import fnmatch
 
 
 def make_request(host, cookies, url, headers=None, data=None, method='GET'):
@@ -82,64 +82,65 @@ def get_default_headers(host, cookies, referer=None, type='default'):
                 "sec-gpc": "1",
         }
         default_headers.update(custom_headers)
+    elif host == 'www.torrentleech.org':
+        custom_headers = {
+            "Host": "www.torrentleech.org",
+            "Cookie": cookies,
+            "sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "dnt": "1",
+            "upgrade-insecure-requests": "1",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-user": "?1",
+            "sec-fetch-dest": "document",
+            "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+            "sec-gpc": "1",
+        }
+        default_headers.update(custom_headers)
         
-    else:
-        return default_headers
-    
-    
-def set_sign_in_status(host, status):
-        try:
-            conn = sqlite3.connect('bot.db')
-            cursor = conn.cursor()
-
-            try:
-                cursor.execute('''
-                    UPDATE Sites
-                    SET sign_in_status = ?
-                    WHERE host = ?
-                ''', (int(status), host)) 
-
-                conn.commit()
-                log_background_info(f"Sign-in status set to {status} for site: {host}")
-
-            except Exception as e:
-
-                conn.rollback()
-                print(f"Error during set_sign_in_status: {str(e)}")
-
-            finally:
-                conn.close()
-
-        except Exception as e:
-            print(f"Error during set_sign_in_status: {str(e)}")
-
-def clear_sign_status():
-    try:
-        conn = sqlite3.connect('bot.db')
-        cursor = conn.cursor()
-
-        try:
-            cursor.execute('''
-                UPDATE Sites
-                SET sign_in_status = 0
-            ''') 
-
-            conn.commit()
-            log_background_info("Sign-in status set to False for all sites")
-
-        except Exception as e:
-
-            conn.rollback()
-            print(f"Error during clear_sign_in_status: {str(e)}")
-
-        finally:
-            conn.close()
-
-    except Exception as e:
-        print(f"Error during clear_sign_in_status: {str(e)}")
+    elif host.endswith('.m-team.io'):
+        custom_headers = {
+            "Host": host,
+            "Cookie": cookies,
+            "cache-control": "max-age=0",
+            "sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "dnt": "1",
+            "upgrade-insecure-requests": "1",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-user": "?1",
+            "sec-fetch-dest": "document",
+            "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+            "sec-gpc": "1",
+        }
         
+        default_headers.update(custom_headers)
+        
+    return default_headers
+ 
+ 
+def get_site_info_url(host):
+        patterns = {
+            "www.torrentleech.org": "https://{}/",
+            "u2.dmhy.org": "https://{}/showup.php?action=show",
+        }
+
+        for pattern, url in patterns.items():
+            if fnmatch.fnmatch(host, pattern):
+                return url.format(host)
+
+        return f'https://{host}/index.php'    
+            
 def get_site_info(host,cookies):
-    response = make_request(host, cookies, f'https://{host}/index.php', headers=None, data=None, method='GET')
+    response = make_request(host, cookies, get_site_info_url(host), headers=None, data=None, method='GET')
     if response == None:
         return None
       

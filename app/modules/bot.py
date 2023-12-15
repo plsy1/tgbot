@@ -1,8 +1,7 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from telebot.types import ReplyKeyboardMarkup
-from functools import partial
 from app.plugins.audiobooksfeed.rss import gen_new_audio_rss
+from app.modules.database import get_sites
 
 
 
@@ -17,7 +16,7 @@ from app.modules.transmission import tr
 from app.utils.logs import log_bot_received_message
 from app.utils.logs import log_bot_sent_message
 from app.utils.logs import log_error_info
-from app.utils.sign_in_utils import clear_sign_status
+from app.modules.database import clear_sign_status
 
 bot = AsyncTeleBot(conf.telegram_token)
 
@@ -126,7 +125,7 @@ async def statistics(message):
 @check_chat_id
 async def signin(message):
     await asyncio.get_event_loop().run_in_executor(None, clear_sign_status)
-    await bot_callback(bot, message,sites.sign_in,handle_result)
+    await bot_callback(bot, message,sites.sign_in(get_sites()),handle_result)
     
 @bot.message_handler(commands=['autosign'])
 @check_chat_id
