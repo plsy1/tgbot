@@ -7,6 +7,7 @@ from app.utils.logs import log_background_info
 from app.utils.logs import log_error_info
 from app.modules.database import clear_sign_status
 from app.plugins.audiobooksfeed.rss import gen_new_audio_rss
+from app.plugins.containerstatuscheck.main import container_status_check
 from app.modules.database import get_sites
 
 
@@ -122,6 +123,24 @@ async def auto_gen_audio_rss(bot):
             await bot.send_message(conf.chat_id, rss_message)
     
     schedule.every(int(conf.audio_rss_gen_interval)).seconds.do(
+        lambda: asyncio.create_task(run_gen_audio_rss())
+    )
+
+    while True:
+        schedule.run_pending()
+        await asyncio.sleep(1)
+        
+        
+async def auto_check_container_status(bot):
+    log_background_info('设置定时任务：自动检查容器运行状态')
+    
+    async def run_gen_audio_rss():
+        await asyncio.get_event_loop().run_in_executor(None, log_background_info, '开始执行：自动检查容器运行状态')
+        message = await asyncio.get_event_loop().run_in_executor(None, container_status_check)
+        if message:
+            await bot.send_message(conf.chat_id, message)
+    
+    schedule.every(int(conf.container_status_check_interval)).seconds.do(
         lambda: asyncio.create_task(run_gen_audio_rss())
     )
 

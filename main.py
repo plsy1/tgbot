@@ -4,7 +4,7 @@ from app.utils import logs
 from app.modules.database import initialize_database
 from app.modules.sites import Sites
 from app.modules.bot import run_bot, bot
-from app.modules.scheduled import auto_cookies_update, auto_clear_sign_status, auto_update_site_info,auto_gen_audio_rss
+from app.modules.scheduled import auto_cookies_update, auto_clear_sign_status, auto_update_site_info,auto_gen_audio_rss, auto_check_container_status
 
 from app.plugins.audiobooksfeed.metadata import *
 from app.plugins.audiobooksfeed.rss import *
@@ -34,10 +34,11 @@ async def main():
     asyncio.create_task(auto_clear_sign_status())
     asyncio.create_task(auto_update_site_info())
     asyncio.create_task(auto_gen_audio_rss(bot))
+    asyncio.create_task(auto_check_container_status(bot))
     
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    tasks = [audiobooks(),run_bot(), main()]
+    tasks = [run_bot(), main()]
     loop.run_until_complete(asyncio.gather(*tasks))
     #generate_rss_file()
   

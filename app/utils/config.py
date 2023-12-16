@@ -49,6 +49,11 @@ class ConfigManager:
         self.audio_rss_gen_interval = self.config['AudioBookFeed']['RSS_UPDATE_INTERVAL']
         self.audio_extensions = self.config['AudioBookFeed']['AUDIO_EXTENSIONS'].split(', ')
         self.rss_domain = self.config['AudioBookFeed']['RSS_DOMAIN']
+        
+        # 容器状态检查配置
+        self.cadvisor_url = self.config['ContainerStatusCheck']['CADVISOR_URL']
+        self.check_list = self.config['ContainerStatusCheck']['CHECK_LIST'].split(', ')
+        self.container_status_check_interval = self.config['ContainerStatusCheck']['CHECK_INTERVAL']
 
 
 conf = ConfigManager()
