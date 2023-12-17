@@ -18,7 +18,7 @@ async def site_auto_sign(bot):
 
     async def run_auto_sign():
         await asyncio.get_event_loop().run_in_executor(None, log_background_info, '开始执行自动签到')
-        future = asyncio.get_event_loop().run_in_executor(None, sites.sign_in,get_sites)
+        future = asyncio.get_event_loop().run_in_executor(None, sites.sign_in)
         res = await future
         try:
             await bot.send_message(conf.chat_id, res, parse_mode='Markdown')

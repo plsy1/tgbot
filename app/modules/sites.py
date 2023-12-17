@@ -10,6 +10,7 @@ from app.utils.sign_in_utils import is_sign_in_ok,get_default_headers, make_requ
 from app.utils.logs import log_background_info, log_error_info
 from app.modules.database import set_sign_in_status
 import io
+from app.modules.database import get_sites
 
 
 class Sites:
@@ -287,14 +288,14 @@ class Sites:
         return res
         
         
-    def sign_in(self,sites):
+    def sign_in(self):
         res = '*【签到通知】*\n'
-        
-        if sites == None:
+        sites_infos = get_sites()
+        if sites_infos == None:
             res += '数据库读取签到所需数据失败。'
             return res
         
-        for site_info in sites:
+        for site_info in sites_infos:
             host, site_alias, cookies, sign_in_url, sign_in_status = site_info
             if host == 'leaves.red':
                 continue;
@@ -337,12 +338,6 @@ class Sites:
                 res += is_sign_in_ok(site_alias, response)
             else:
                 response = make_request(host, cookies, sign_in_url, headers=None, data=None, method='GET')
-                if response.status_code == 200:
-                    with io.open('response_content.html', 'w', encoding='utf-8') as file:
-                        file.write(response.text)
-                else:
-                    print(f"Request failed with status code {response.status_code}")
-
                 res += is_sign_in_ok(site_alias, response)
                 
             if response and response.status_code == 200: 

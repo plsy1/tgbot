@@ -75,7 +75,7 @@ def get_sites():
         sites = cursor.fetchall()
         return sites
     except Exception as e:
-            print(f"Error during get passkey: {str(e)}")
+            print(f"Error during get sites info: {str(e)}")
     finally:
             conn.close()
 

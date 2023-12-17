@@ -34,7 +34,7 @@ async def commands(bot):
         await bot.delete_my_commands()
         await bot.set_my_commands([
             telebot.types.BotCommand("/speed", "查看下载器速度"),
-            telebot.types.BotCommand("/signin", "强制重新签到"),
+            telebot.types.BotCommand("/signin", "手动签到"),
             telebot.types.BotCommand("/autosign", "开启自动签到"),
             telebot.types.BotCommand("/pauseall","暂停下载器任务"),
             telebot.types.BotCommand("/resumeall","恢复下载器任务"),
@@ -124,8 +124,9 @@ async def statistics(message):
 @bot.message_handler(commands=['signin'])
 @check_chat_id
 async def signin(message):
-    await asyncio.get_event_loop().run_in_executor(None, clear_sign_status)
-    await bot_callback(bot, message,sites.sign_in(get_sites()),handle_result)
+    #await asyncio.get_event_loop().run_in_executor(None, clear_sign_status)
+    await bot_callback(bot, message,sites.sign_in,handle_result)
+    
     
 @bot.message_handler(commands=['autosign'])
 @check_chat_id
