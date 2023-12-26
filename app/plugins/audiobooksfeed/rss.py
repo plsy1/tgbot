@@ -22,7 +22,7 @@ def generate_item_element(host,bookdir, file_name,reader,time_diff_hours):
     item_title.text = base_name
     
     # 计算时间差
-    current_time = time.time()
+    current_time = time.mktime((2022, 1, 1, 0, 0, 0, 0, 0, 0))
     pub_date_time = current_time + (time_diff_hours * 3600)  # 将小时转换为秒
 
     # 添加 <pubDate> 元素到订阅项
